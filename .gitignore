@@ -4,3 +4,5 @@ threadpool
 cmake-build-debug/*
 .idea/
 CMakeLists.txt
+*.txt
+distwc

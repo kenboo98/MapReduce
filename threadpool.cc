@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <semaphore.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -30,6 +31,7 @@ ThreadPool_t *ThreadPool_create(int num){
     ThreadPool_t *threadPool = new ThreadPool_t();
     sem_init(&threadPool->readLock, 0, 1);
     sem_init(&threadPool->writeCond, 0, 0);
+    sem_init(&threadPool->writeLock, 0, 1);
     for(int i = 0; i < num; i++){
         pthread_t tid;
         pthread_create(&tid, NULL, Thread_run, threadPool);
@@ -42,8 +44,10 @@ bool ThreadPool_add_work(ThreadPool_t *tp, thread_func_t func, void *arg){
     ThreadPool_work_t *task = new ThreadPool_work_t();
     task->func = func;
     task->arg = arg;
+    sem_wait(&(tp->writeLock));
     tp->workQueue.tasks.push(task);
     sem_post(&(tp->writeCond));
+    sem_post(&(tp->writeLock));
 }
 
 ThreadPool_work_t *ThreadPool_get_work(ThreadPool_t *tp){
@@ -57,7 +61,7 @@ ThreadPool_work_t *ThreadPool_get_work(ThreadPool_t *tp){
 
 }
 
-void ThreadPoolDestroy(ThreadPool_t *tp){
+void ThreadPool_destroy(ThreadPool_t *tp){
     for(auto& id: tp->tid){
         pthread_cancel(id);
     }
@@ -70,7 +74,8 @@ int main(){
     for(int i = 0; i < 2000; i++){
         int num = i;
         ThreadPool_add_work(tp, athread, (void *) num);
+        usleep(rand()%10000);
     }
     sleep(2);
-    ThreadPoolDestroy(tp);
+    ThreadPool_destroy(tp);
 }

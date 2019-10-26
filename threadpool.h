@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <vector>
+#include <semaphore.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,18 +15,20 @@ typedef struct ThreadPool_work_t {
     thread_func_t func;              // The function pointer
     void *arg;                       // The arguments for the function
     // TODO: Add other members here if needed
-};
+}ThreadPool_work_t;
 
-typedef struct ThreadPool_work_queue_t{
+typedef struct {
     // TODO: Add members here
-    std::vector<ThreadPool_work_t> work_queue;
-    pthread_mutex_t semaphore = PTHREAD_MUTEX_INITIALIZER;
-};
+    std::vector<ThreadPool_work_t*> tasks;
+}ThreadPool_work_queue_t;
 
-typedef struct ThreadPool_t{
+typedef struct {
     // TODO: Add members here
+    sem_t semaphore;
+    ThreadPool_work_queue_t workQueue;
     std::vector<pthread_t> tid;
-};
+
+} ThreadPool_t;
 
 
 /**
@@ -63,14 +66,15 @@ bool ThreadPool_add_work(ThreadPool_t *tp, thread_func_t func, void *arg);
 * Return:
 *     ThreadPool_work_t* - The next task to run
 */
-ThreadPool_work_t *ThreadPool_get_work(ThreadPool_t *tp);
+void *ThreadPool_get_work(ThreadPool_t *tp);
 
 /**
 * Run the next task from the task queue
 * Parameters:
 *     tp - The ThreadPool Object this thread belongs to
-*/
-void *Thread_run(ThreadPool_t *tp);
+TODO: Explain changes in function signature
+ */
+void *Thread_run(void *tp);
 
 
 #ifdef __cplusplus

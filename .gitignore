@@ -1,0 +1,6 @@
+*.o
+mapreduce
+threadpool
+cmake-build-debug/*
+.idea/
+CMakeLists.txt

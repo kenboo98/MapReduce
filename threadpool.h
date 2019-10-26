@@ -2,7 +2,7 @@
 #define THREADPOOL_H
 #include <pthread.h>
 #include <stdbool.h>
-#include <vector>
+#include <queue>
 #include <semaphore.h>
 
 #ifdef __cplusplus
@@ -19,7 +19,7 @@ typedef struct ThreadPool_work_t {
 
 typedef struct {
     // TODO: Add members here
-    std::vector<ThreadPool_work_t*> tasks;
+    std::queue<ThreadPool_work_t*> tasks;
 }ThreadPool_work_queue_t;
 
 typedef struct {

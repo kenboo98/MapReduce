@@ -5,9 +5,8 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
-#include <iostream>
 #include <semaphore.h>
-#include <stdlib.h>
+
 
 using namespace std;
 
@@ -67,7 +66,7 @@ void ThreadPool_destroy(ThreadPool_t *tp){
     }
     delete tp;
 }
-
+/*
 int main(){
 
     ThreadPool_t *tp = ThreadPool_create(3);
@@ -79,3 +78,4 @@ int main(){
     sleep(2);
     ThreadPool_destroy(tp);
 }
+*/

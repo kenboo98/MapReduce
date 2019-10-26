@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <queue>
 #include <semaphore.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {

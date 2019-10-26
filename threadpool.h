@@ -24,7 +24,8 @@ typedef struct {
 
 typedef struct {
     // TODO: Add members here
-    sem_t semaphore;
+    sem_t readLock;
+    sem_t writeCond;
     ThreadPool_work_queue_t workQueue;
     std::vector<pthread_t> tid;
 
@@ -66,7 +67,7 @@ bool ThreadPool_add_work(ThreadPool_t *tp, thread_func_t func, void *arg);
 * Return:
 *     ThreadPool_work_t* - The next task to run
 */
-void *ThreadPool_get_work(ThreadPool_t *tp);
+ThreadPool_work_t *ThreadPool_get_work(ThreadPool_t *tp);
 
 /**
 * Run the next task from the task queue

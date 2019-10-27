@@ -14,7 +14,7 @@
 using namespace std;
 
 typedef struct Partitions_t{
-    vector<multimap<string, int>> partitions;
+    vector<multimap<string, string>> multimaps;
     vector<pthread_mutex_t> partition_lock;
     int n_partitions;
     Partitions_t(int partitions){
@@ -22,11 +22,13 @@ typedef struct Partitions_t{
         for(int i = 0; i<partitions; i++){
             pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
             this->partition_lock.push_back(mutex);
-
+            multimap<string, string> mmap;
+            this->multimaps.push_back(mmap);
         }
     }
 } Partitions_t;
 
+Partitions_t *partitions;
 
 bool job_comparator(string file1, string file2) {
     struct stat stat1, stat2;
@@ -47,8 +49,7 @@ bool job_comparator(string file1, string file2) {
 void MR_Run(int num_files, char *filenames[],
             Mapper map, int num_mappers,
             Reducer concate, int num_reducers) {
-    Partitions_t *partitions = new Partitions_t();
-    partitions-> n_partitions = num_reducers;
+    partitions = new Partitions_t(num_reducers);
 
     // Create the reducer threads
     ThreadPool_t *tp = ThreadPool_create(num_mappers);
@@ -62,7 +63,11 @@ void MR_Run(int num_files, char *filenames[],
     for (int i = 0; i < num_files; i++) {
         ThreadPool_add_work(tp, (thread_func_t) map, (void *) jobs[i].c_str());
     }
-    sleep(5);
+    sleep(10);
+    //for (auto& mmap:partitions->multimaps){
+    //for(std::pair<string, string> elem : mmap)
+    //        std::cout<<elem.first<<" :: "<<elem.second<<std::endl;
+    //}
 
 
 }
@@ -73,6 +78,10 @@ void MR_Run(int num_files, char *filenames[],
  *
  */
 void MR_Emit(char *key, char *value) {
+    unsigned long partition_index = MR_Partition(key, partitions->n_partitions);
+    pthread_mutex_lock(&(partitions->partition_lock[partition_index]));
+    partitions->multimaps[partition_index].insert(pair<string, string>(key, value));
+    pthread_mutex_unlock(&(partitions->partition_lock[partition_index]));
 }
 
 /* Takes a key and the number of partitions and returns

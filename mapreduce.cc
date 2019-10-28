@@ -14,16 +14,16 @@
 using namespace std;
 
 typedef struct Partitions_t{
-    vector<multimap<string, string>> multimaps;
-    vector<pthread_mutex_t> partition_lock;
+    vector<map<string, vector<string>>> partitionMaps;
+    vector<pthread_mutex_t> partitionLock;
     int n_partitions;
     Partitions_t(int partitions){
         this->n_partitions = partitions;
         for(int i = 0; i<partitions; i++){
             pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-            this->partition_lock.push_back(mutex);
-            multimap<string, string> mmap;
-            this->multimaps.push_back(mmap);
+            this->partitionLock.push_back(mutex);
+            map<string, vector<string>> map;
+            this->partitionMaps.push_back(map);
         }
     }
 } Partitions_t;
@@ -66,9 +66,15 @@ void MR_Run(int num_files, char *filenames[],
 
     ThreadPool_destroy(tp);
 
-    for (auto& mmap:partitions->multimaps){
-        for(std::pair<string, string> elem : mmap)
-                std::cout<<elem.first<<" :: "<<elem.second<<std::endl;
+    for (auto& map:partitions->partitionMaps){
+        for(pair<string, vector<string>> elem : map){
+            cout<<"key"<<" :: "<<elem.first<<endl;
+            for(auto &s: elem.second){
+                cout<<s<<",";
+            }
+            cout << endl;
+        }
+
     }
 
 
@@ -81,9 +87,9 @@ void MR_Run(int num_files, char *filenames[],
  */
 void MR_Emit(char *key, char *value) {
     unsigned long partition_index = MR_Partition(key, partitions->n_partitions);
-    pthread_mutex_lock(&(partitions->partition_lock[partition_index]));
-    partitions->multimaps[partition_index].insert(pair<string, string>(key, value));
-    pthread_mutex_unlock(&(partitions->partition_lock[partition_index]));
+    pthread_mutex_lock(&(partitions->partitionLock[partition_index]));
+    partitions->partitionMaps[partition_index][string(key)].push_back(string(value));
+    pthread_mutex_unlock(&(partitions->partitionLock[partition_index]));
 }
 
 /* Takes a key and the number of partitions and returns

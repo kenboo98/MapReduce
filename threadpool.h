@@ -15,7 +15,6 @@ typedef void (*thread_func_t)(void *arg);
 typedef struct ThreadPool_work_t {
     thread_func_t func;              // The function pointer
     void *arg;                       // The arguments for the function
-    int job_size;
 }ThreadPool_work_t;
 
 typedef struct {
@@ -25,9 +24,9 @@ typedef struct {
 
 typedef struct {
     // TODO: Add members here
-    sem_t readLock;
-    sem_t writeLock;
-    sem_t writeCond;
+    pthread_mutex_t taskLock;
+    pthread_cond_t taskCond;
+    bool finished;
     ThreadPool_work_queue_t workQueue;
     std::vector<pthread_t> tid;
 

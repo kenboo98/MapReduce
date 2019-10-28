@@ -63,11 +63,13 @@ void MR_Run(int num_files, char *filenames[],
     for (int i = 0; i < num_files; i++) {
         ThreadPool_add_work(tp, (thread_func_t) map, (void *) jobs[i].c_str());
     }
-    sleep(10);
-    //for (auto& mmap:partitions->multimaps){
-    //for(std::pair<string, string> elem : mmap)
-    //        std::cout<<elem.first<<" :: "<<elem.second<<std::endl;
-    //}
+
+    ThreadPool_destroy(tp);
+
+    for (auto& mmap:partitions->multimaps){
+        for(std::pair<string, string> elem : mmap)
+                std::cout<<elem.first<<" :: "<<elem.second<<std::endl;
+    }
 
 
 }

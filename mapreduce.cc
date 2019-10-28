@@ -29,6 +29,7 @@ typedef struct Partitions_t{
 } Partitions_t;
 
 Partitions_t *partitions;
+Reducer func_Reducer;
 
 bool job_comparator(string file1, string file2) {
     struct stat stat1, stat2;
@@ -50,9 +51,9 @@ void MR_Run(int num_files, char *filenames[],
             Mapper map, int num_mappers,
             Reducer concate, int num_reducers) {
     partitions = new Partitions_t(num_reducers);
-
+    func_Reducer = concate;
     // Create the reducer threads
-    ThreadPool_t *tp = ThreadPool_create(num_mappers);
+    ThreadPool_t *mappers = ThreadPool_create(num_mappers);
     vector<string> jobs;
     for (int i = 0; i < num_files; i++) {
         string file = filenames[i];
@@ -61,11 +62,11 @@ void MR_Run(int num_files, char *filenames[],
     //sort jobs by length of file
     sort(jobs.begin(), jobs.end(), job_comparator);
     for (int i = 0; i < num_files; i++) {
-        ThreadPool_add_work(tp, (thread_func_t) map, (void *) jobs[i].c_str());
+        ThreadPool_add_work(mappers, (thread_func_t) map, (void *) jobs[i].c_str());
     }
 
-    ThreadPool_destroy(tp);
-
+    ThreadPool_destroy(mappers);
+    /*
     for (auto& map:partitions->partitionMaps){
         for(pair<string, vector<string>> elem : map){
             cout<<"key"<<" :: "<<elem.first<<endl;
@@ -75,8 +76,13 @@ void MR_Run(int num_files, char *filenames[],
             cout << endl;
         }
 
-    }
+    }*/
 
+    ThreadPool_t *reducers = ThreadPool_create(num_reducers);
+    for (int i = 0; i < partitions->n_partitions; i++){
+        ThreadPool_add_work(reducers, (thread_func_t) MR_ProcessPartition, (void *) i);
+    }
+    ThreadPool_destroy(reducers);
 
 }
 
@@ -110,7 +116,12 @@ unsigned long MR_Partition(char *key, int num_partitions) {
  *
  */
 void MR_ProcessPartition(int partition_number) {
+    pthread_mutex_lock(&(partitions->partitionLock[partition_number]));
 
+    for(std::pair<string, vector<string>> elem: partitions->partitionMaps[partition_number]){
+        func_Reducer( (char *) elem.first.c_str(), partition_number);
+    }
+    pthread_mutex_unlock(&(partitions->partitionLock[partition_number]));
 }
 
 /* Returns the next value associated with the given key in the
@@ -118,4 +129,14 @@ void MR_ProcessPartition(int partition_number) {
  */
 char *MR_GetNext(char *key, int partition_number) {
 
+    string skey = key;
+    string next;
+    if(!partitions->partitionMaps[partition_number][skey].empty()){
+        next = partitions->partitionMaps[partition_number][skey].back();
+        partitions->partitionMaps[partition_number][skey].pop_back();
+    }
+    if(next.empty()){
+        return NULL;
+    }
+    return (char *) next.c_str();
 }

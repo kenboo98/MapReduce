@@ -79,7 +79,7 @@ void MR_Run(int num_files, char *filenames[],
     }*/
 
     ThreadPool_t *reducers = ThreadPool_create(num_reducers);
-    for (int i = 0; i < partitions->n_partitions; i++){
+    for (intptr_t i = 0; i < partitions->n_partitions; i++){
         ThreadPool_add_work(reducers, (thread_func_t) MR_ProcessPartition, (void *) i);
     }
     ThreadPool_destroy(reducers);
@@ -116,12 +116,12 @@ unsigned long MR_Partition(char *key, int num_partitions) {
  *
  */
 void MR_ProcessPartition(int partition_number) {
-    pthread_mutex_lock(&(partitions->partitionLock[partition_number]));
+    //pthread_mutex_lock(&(partitions->partitionLock[partition_number]));
 
     for(std::pair<string, vector<string>> elem: partitions->partitionMaps[partition_number]){
         func_Reducer( (char *) elem.first.c_str(), partition_number);
     }
-    pthread_mutex_unlock(&(partitions->partitionLock[partition_number]));
+    //pthread_mutex_unlock(&(partitions->partitionLock[partition_number]));
 }
 
 /* Returns the next value associated with the given key in the

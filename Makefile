@@ -1,19 +1,20 @@
+FLAGS = -std=c++11 -g -Wall -Werror -pthread
 mapreduce: mapreduce.o threadpool.o distwc.o
-	g++ -std=c++11 -g -Wall -pthread -o distwc mapreduce.o threadpool.o distwc.o
+	g++ $(FLAGS) -o mapreduce mapreduce.o threadpool.o distwc.o
 
 threadpool: threadpool.o
-	g++ -std=c++11 -g -Wall -pthread -o threadpool threadpool.o
+	g++ $(FLAGS) -o threadpool threadpool.o
 
 compile: mapreduce.o threadpool.o
 
 threadpool.o: threadpool.cc threadpool.h
-	g++  -std=c++11 -g -Wall -pthread  -c threadpool.cc
+	g++ $(FLAGS) -c threadpool.cc
 
 mapreduce.o: mapreduce.cc mapreduce.h
-	g++  -std=c++11 -g -Wall -pthread -c mapreduce.cc
+	g++ $(FLAGS) -c mapreduce.cc
 
 distwc.o: distwc.c
-	g++  -std=c++11 -g -Wall -pthread -c distwc.c
+	g++ $(FLAGS) -c distwc.c
 
 clean:
 	rm mapreduce.o threadpool.o mapreduce threadpool

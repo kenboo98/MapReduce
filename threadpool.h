@@ -1,7 +1,6 @@
 #ifndef THREADPOOL_H
 #define THREADPOOL_H
 #include <pthread.h>
-#include <stdbool.h>
 #include <queue>
 #include <semaphore.h>
 #include <stdlib.h>

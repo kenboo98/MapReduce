@@ -12,13 +12,13 @@
 
 using namespace std;
 
-void athread (void* arg) {
-    int i; pid_t pid; pthread_t tid;
+void testFunc (void* arg) {
+    pid_t pid; pthread_t tid;
     pid = getpid();
     tid = pthread_self(); // obtain the handle (ID) of the calling thread
     usleep(rand()%10000);
     printf("Process ID: %d, thread ID: %d, Value %d\n", (unsigned int) pid,
-           (unsigned int) tid, (int *) arg);
+           (unsigned int) tid, *(int *)arg);
 }
 
 void *Thread_run(void *args){
@@ -50,6 +50,7 @@ bool ThreadPool_add_work(ThreadPool_t *tp, thread_func_t func, void *arg){
     tp->workQueue.tasks.push(task);
     pthread_cond_signal(&tp->taskCond);
     pthread_mutex_unlock(&tp->taskLock);
+    return true;
 }
 
 ThreadPool_work_t *ThreadPool_get_work(ThreadPool_t *tp){

@@ -17,6 +17,7 @@ void *Thread_run(void *args){
     while(true) {
         ThreadPool_work_t *task = ThreadPool_get_work(tp);
         task->func(task->arg);
+        delete(task);
     }
 }
 

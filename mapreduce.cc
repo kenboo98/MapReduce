@@ -79,6 +79,7 @@ void MR_Run(int num_files, char *filenames[],
         ThreadPool_add_work(reducers, (thread_func_t) MR_ProcessPartition, (void *) i);
     }
     ThreadPool_destroy(reducers);
+    delete(partitions);
 
 }
 

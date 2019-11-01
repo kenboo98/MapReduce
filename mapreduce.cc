@@ -12,11 +12,15 @@
 
 using namespace std;
 
+/**
+ * Global struct containing everything needed for partitions.
+ * Includes number of partitions, locks, partition maps etc.
+ */
 typedef struct Partitions_t{
     vector<map<string, vector<string>>> partitionMaps;
     vector<pthread_mutex_t> partitionLock;
     int n_partitions;
-    Partitions_t(int partitions){
+    explicit Partitions_t(int partitions){
         this->n_partitions = partitions;
         for(int i = 0; i<partitions; i++){
             pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -28,8 +32,14 @@ typedef struct Partitions_t{
 } Partitions_t;
 
 Partitions_t *partitions;
-Reducer func_Reducer;
 
+Reducer func_Reducer;
+/**
+ * Function used to sort files by size.
+ * @param file1 Location of file 1
+ * @param file2 Location of file 2
+ * @return
+ */
 bool job_comparator(string file1, string file2) {
     struct stat stat1, stat2;
     stat(file1.c_str(), &stat1);
@@ -43,15 +53,13 @@ bool job_comparator(string file1, string file2) {
  * Needs to create all the Mapping threads
  * When the mapping is complete, it needs to create all the
  * Reducing threads.
- *
  */
-
 void MR_Run(int num_files, char *filenames[],
             Mapper map, int num_mappers,
             Reducer concate, int num_reducers) {
     partitions = new Partitions_t(num_reducers);
     func_Reducer = concate;
-    // Create the reducer threads
+    // Create the mapper threads
     ThreadPool_t *mappers = ThreadPool_create(num_mappers);
     vector<string> jobs;
     for (int i = 0; i < num_files; i++) {
@@ -65,18 +73,7 @@ void MR_Run(int num_files, char *filenames[],
     }
 
     ThreadPool_destroy(mappers);
-    /*
-    for (auto& map:partitions->partitionMaps){
-        for(pair<string, vector<string>> elem : map){
-            cout<<"key"<<" :: "<<elem.first<<endl;
-            for(auto &s: elem.second){
-                cout<<s<<",";
-            }
-            cout << endl;
-        }
-
-    }*/
-
+    // Create reducer threads
     ThreadPool_t *reducers = ThreadPool_create(num_reducers);
     for (intptr_t i = 0; i < partitions->n_partitions; i++){
         ThreadPool_add_work(reducers, (thread_func_t) MR_ProcessPartition, (void *) i);
@@ -99,7 +96,6 @@ void MR_Emit(char *key, char *value) {
 
 /* Takes a key and the number of partitions and returns
  * the partition that a particular key must be in
- *
  */
 unsigned long MR_Partition(char *key, int num_partitions) {
     unsigned long hash = 5381;
@@ -115,19 +111,15 @@ unsigned long MR_Partition(char *key, int num_partitions) {
  *
  */
 void MR_ProcessPartition(int partition_number) {
-    //pthread_mutex_lock(&(partitions->partitionLock[partition_number]));
-
     for(std::pair<string, vector<string>> elem: partitions->partitionMaps[partition_number]){
         func_Reducer( (char *) elem.first.c_str(), partition_number);
     }
-    //pthread_mutex_unlock(&(partitions->partitionLock[partition_number]));
 }
 
 /* Returns the next value associated with the given key in the
  * sorted partition or Null when it has been completely processed
  */
 char *MR_GetNext(char *key, int partition_number) {
-
     string skey = key;
     string next;
     if(!partitions->partitionMaps[partition_number][skey].empty()){

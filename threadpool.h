@@ -17,21 +17,16 @@ typedef struct ThreadPool_work_t {
 }ThreadPool_work_t;
 
 typedef struct {
-    // TODO: Add members here
     std::queue<ThreadPool_work_t*> tasks;
 }ThreadPool_work_queue_t;
 
 typedef struct {
-    // TODO: Add members here
     pthread_mutex_t taskLock;
     pthread_cond_t taskCond;
-    bool finished;
     ThreadPool_work_queue_t workQueue;
     std::vector<pthread_t> tid;
-
+    bool finished;
 } ThreadPool_t;
-
-
 /**
 * A C style constructor for creating a new ThreadPool object
 * Parameters:

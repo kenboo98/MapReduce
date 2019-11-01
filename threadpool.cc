@@ -9,17 +9,8 @@
 #include <semaphore.h>
 #include <iostream>
 
-
 using namespace std;
 
-void testFunc (void* arg) {
-    pid_t pid; pthread_t tid;
-    pid = getpid();
-    tid = pthread_self(); // obtain the handle (ID) of the calling thread
-    usleep(rand()%10000);
-    printf("Process ID: %d, thread ID: %d, Value %d\n", (unsigned int) pid,
-           (unsigned int) tid, *(int *)arg);
-}
 
 void *Thread_run(void *args){
     ThreadPool_t *tp = (ThreadPool_t *) args;
@@ -85,15 +76,4 @@ void ThreadPool_destroy(ThreadPool_t *tp){
     }
     delete(tp);
 }
-/*
-int main(){
-
-    ThreadPool_t *tp = ThreadPool_create(3);
-    for(int i = 0; i < 2000; i++){
-        int num = i;
-        ThreadPool_add_work(tp, athread, (void *) num);
-
-    }
-    ThreadPool_destroy(tp);
-}*/
 

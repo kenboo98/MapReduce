@@ -1,4 +1,4 @@
-#CMPUT 379 Assignment 2
+# CMPUT 379 Assignment 2 - MapReduce
 ## Introduction
 In this assignment, we implement a simplified version of MapReduce using local threads and our own threadpool.
 To run:
